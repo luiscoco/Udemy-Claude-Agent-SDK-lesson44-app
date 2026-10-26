@@ -379,6 +379,21 @@ export async function runAgent(
       catalog,
       definitions: agentDefinitions,
       continuation: {
+        verified:
+          c.mode === "resume"
+            ? delegations.length === 1 &&
+              observations.some(
+                (o) =>
+                  o.kind === "resume-message" && o.detail.input.to === agentId,
+              ) &&
+              observations.some(
+                (o) =>
+                  o.kind === "child-correlation" &&
+                  o.detail.phase === 2 &&
+                  o.detail.agentId === agentId,
+              ) &&
+              childTools.every((t) => t.phase === 1)
+            : null,
         requests: observations
           .filter((o) => o.kind === "resume-request")
           .map((o) => o.detail),

@@ -32,10 +32,6 @@ export async function prepareWorkspace() {
     "Classroom project. Do not modify files. Keep reports under 60 words.",
   );
   await writeFile(
-    join(cwd, ".claude", "agents", "file-reviewer.md"),
-    "---\nname: file-reviewer\ndescription: Classroom read-only code reviewer.\ntools: Read\nmodel: inherit\n---\nRead auth.cjs once. Identify the substring role-check bug. Do not modify files. Report under 50 words.",
-  );
-  await writeFile(
     join(cwd, "endpoints.txt"),
     "GET /health -> healthHandler\nPOST /orders -> createOrderHandler\nGET /orders/:id -> orderDetailsHandler\n",
   );

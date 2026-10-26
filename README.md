@@ -74,20 +74,18 @@ npm test
 
 ## How the app was built
 
-### 1. Validate the fixed experiment
+### 1. Choose automatic or explicit invocation
 
-Accept only a classroom scenario; browser input cannot inject model IDs, definitions, paths or resume IDs.
+The automatic task asks for description-based selection without naming a specialist. The explicit task names security-reviewer. Both require actual delegation evidence.
 
-Source: `src/modes.ts`, selected lines 3–9. Surrounding code omitted.
+Source: `src/agent.ts`, selected lines 21–25. Surrounding code omitted.
 
 ```typescript
-export function validateConfig(value: unknown): RunConfig {
-  const c = value as Record<string, unknown>;
-  if (!c || typeof c !== "object" || !MODES.includes(c.mode as never))
-    throw new Error("Choose a listed subagent experiment.");
-  if (Object.keys(c).some((k) => k !== "mode"))
-    throw new Error("Only the classroom mode can be configured.");
-  return { mode: c.mode as RunConfig["mode"] };
+automatic:
+    "Arrange a specialist security review of auth.cjs. Choose the appropriate specialist from its description, wait for the report and summarize the flaw. Do not inspect the code yourself.",
+  explicit: task(
+    "security-reviewer",
+    "Read auth.cjs and identify the role-check bug.",
 ```
 
 ### 2. Build a runtime reviewer definition
@@ -195,16 +193,13 @@ if (c.mode === "resume") {
 
 The second query receives resume with the captured parent session ID and reuses the agent definitions. The parent session selects the stored conversation.
 
-Source: `src/agent.ts`, selected lines 98–104. Surrounding code omitted.
+Source: `src/agent.ts`, selected lines 103–106. Surrounding code omitted.
 
 ```typescript
-const run = async (prompt = PROMPTS[c.mode], resume?: string) => {
-    const names = Object.keys(agentDefinitions);
-    const options: Options = {
-      cwd: w.cwd,
-      model: MODEL,
-      agents: agentDefinitions,
+agents: agentDefinitions,
       resume,
+      tools: ["Agent", "SendMessage", "Read", "Grep", "Glob", "Bash"],
+      allowedTools: ["Agent", "SendMessage", "Read", "Grep", "Glob", "Bash"],
 ```
 
 ### 10. Target the existing child with SendMessage
@@ -240,7 +235,7 @@ if (i.hook_event_name === "SubagentStop") {
 
 The project contains a same-name file agent with a different marker-only prompt. The programmatic definition takes precedence; verify actual review activity.
 
-Source: `src/workspace.ts`, selected lines 43–44. Surrounding code omitted.
+Source: `src/workspace.ts`, selected lines 39–40. Surrounding code omitted.
 
 ```typescript
 join(cwd, ".claude", "agents", "security-reviewer.md"),
@@ -251,7 +246,7 @@ join(cwd, ".claude", "agents", "security-reviewer.md"),
 
 Hash the toy source, tests and endpoint fixture after the workflow. Native reports and unchanged files are independent evidence.
 
-Source: `src/agent.ts`, selected lines 392–396. Surrounding code omitted.
+Source: `src/agent.ts`, selected lines 407–411. Surrounding code omitted.
 
 ```typescript
 fixtureUnchanged: before.hash === after.hash,

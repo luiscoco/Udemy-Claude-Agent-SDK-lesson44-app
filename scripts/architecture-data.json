@@ -10,7 +10,7 @@
     [
       0,
       1,
-      "1. Validate the fixed experiment"
+      "1. Choose automatic or explicit invocation"
     ],
     [
       1,
@@ -76,18 +76,18 @@
   "steps": [
     {
       "number": 1,
-      "title": "Validate the fixed experiment",
-      "source": "src/modes.ts",
-      "code": "export function validateConfig(value: unknown): RunConfig {\n  const c = value as Record<string, unknown>;\n  if (!c || typeof c !== \"object\" || !MODES.includes(c.mode as never))\n    throw new Error(\"Choose a listed subagent experiment.\");\n  if (Object.keys(c).some((k) => k !== \"mode\"))\n    throw new Error(\"Only the classroom mode can be configured.\");\n  return { mode: c.mode as RunConfig[\"mode\"] };",
+      "title": "Choose automatic or explicit invocation",
+      "source": "src/agent.ts",
+      "code": "automatic:\n    \"Arrange a specialist security review of auth.cjs. Choose the appropriate specialist from its description, wait for the report and summarize the flaw. Do not inspect the code yourself.\",\n  explicit: task(\n    \"security-reviewer\",\n    \"Read auth.cjs and identify the role-check bug.\",",
       "language": "typescript",
-      "explanation": "Accept only a classroom scenario; browser input cannot inject model IDs, definitions, paths or resume IDs.",
-      "firstLine": 3,
-      "lastLine": 9,
+      "explanation": "The automatic task asks for description-based selection without naming a specialist. The explicit task names security-reviewer. Both require actual delegation evidence.",
+      "firstLine": 21,
+      "lastLine": 25,
       "anchors": [
-        "export function validateConfig(value: unknown): RunConfig {"
+        "automatic:"
       ],
-      "sourceSHA256": "3504ebb05190037dd3c088da3c6743efb8efdd49c22050e268d82d1ec0116a28",
-      "narration": "Step 1. Accept only a classroom scenario; browser input cannot inject model IDs, definitions, paths or resume IDs. This source excerpt shows the corresponding application statement."
+      "sourceSHA256": "8c7a56a476de7c3034972e763b28c5ce871cf3524e892deae6ea7582fa3aa7e4",
+      "narration": "Step 1. The automatic task asks for description-based selection without naming a specialist. The explicit task names security-reviewer. Both require actual delegation evidence. This source excerpt shows the corresponding application statement."
     },
     {
       "number": 2,
@@ -131,7 +131,7 @@
       "anchors": [
         "agents: agentDefinitions,"
       ],
-      "sourceSHA256": "18b99f06ee43501f80c682c3a9e588f8b47e538b9f1373b9be255d782d66c829",
+      "sourceSHA256": "8c7a56a476de7c3034972e763b28c5ce871cf3524e892deae6ea7582fa3aa7e4",
       "narration": "Step 4. Attach stable definitions to the parent query. Enable Agent for initial delegation and SendMessage for current-runtime continuation. This source excerpt shows the corresponding application statement."
     },
     {
@@ -146,7 +146,7 @@
       "anchors": [
         "if (!parentId && (b.name === \"Agent\" || b.name === \"Task\")) {"
       ],
-      "sourceSHA256": "18b99f06ee43501f80c682c3a9e588f8b47e538b9f1373b9be255d782d66c829",
+      "sourceSHA256": "8c7a56a476de7c3034972e763b28c5ce871cf3524e892deae6ea7582fa3aa7e4",
       "narration": "Step 5. Retain the actual Agent tool-use ID and input. Match Task as well for compatibility with older emitted names. This source excerpt shows the corresponding application statement."
     },
     {
@@ -161,7 +161,7 @@
       "anchors": [
         "observe(\"child-correlation\", {"
       ],
-      "sourceSHA256": "18b99f06ee43501f80c682c3a9e588f8b47e538b9f1373b9be255d782d66c829",
+      "sourceSHA256": "8c7a56a476de7c3034972e763b28c5ce871cf3524e892deae6ea7582fa3aa7e4",
       "narration": "Step 6. Child messages expose parent_tool_use_id and agent_id. These identify a delegation and child; neither is the parent session ID. This source excerpt shows the corresponding application statement."
     },
     {
@@ -176,7 +176,7 @@
       "anchors": [
         "export function extractAgentId(content: unknown): string | undefined {"
       ],
-      "sourceSHA256": "18b99f06ee43501f80c682c3a9e588f8b47e538b9f1373b9be255d782d66c829",
+      "sourceSHA256": "8c7a56a476de7c3034972e763b28c5ce871cf3524e892deae6ea7582fa3aa7e4",
       "narration": "Step 7. Parse the agentId trailer in actual returned message content. Do not substitute a tool-use ID or invent a resumable child. This source excerpt shows the corresponding application statement."
     },
     {
@@ -191,22 +191,22 @@
       "anchors": [
         "if (c.mode === \"resume\") {"
       ],
-      "sourceSHA256": "18b99f06ee43501f80c682c3a9e588f8b47e538b9f1373b9be255d782d66c829",
+      "sourceSHA256": "8c7a56a476de7c3034972e763b28c5ce871cf3524e892deae6ea7582fa3aa7e4",
       "narration": "Step 8. Require both native parent session and child ID. Keep the same definitions and record the exact resume request. This source excerpt shows the corresponding application statement."
     },
     {
       "number": 9,
       "title": "Resume the owning parent session",
       "source": "src/agent.ts",
-      "code": "const run = async (prompt = PROMPTS[c.mode], resume?: string) => {\n    const names = Object.keys(agentDefinitions);\n    const options: Options = {\n      cwd: w.cwd,\n      model: MODEL,\n      agents: agentDefinitions,\n      resume,",
+      "code": "agents: agentDefinitions,\n      resume,\n      tools: [\"Agent\", \"SendMessage\", \"Read\", \"Grep\", \"Glob\", \"Bash\"],\n      allowedTools: [\"Agent\", \"SendMessage\", \"Read\", \"Grep\", \"Glob\", \"Bash\"],",
       "language": "typescript",
       "explanation": "The second query receives resume with the captured parent session ID and reuses the agent definitions. The parent session selects the stored conversation.",
-      "firstLine": 98,
-      "lastLine": 104,
+      "firstLine": 103,
+      "lastLine": 106,
       "anchors": [
-        "const run = async (prompt = PROMPTS[c.mode], resume?: string) => {"
+        "agents: agentDefinitions,"
       ],
-      "sourceSHA256": "18b99f06ee43501f80c682c3a9e588f8b47e538b9f1373b9be255d782d66c829",
+      "sourceSHA256": "8c7a56a476de7c3034972e763b28c5ce871cf3524e892deae6ea7582fa3aa7e4",
       "narration": "Step 9. The second query receives resume with the captured parent session ID and reuses the agent definitions. The parent session selects the stored conversation. This source excerpt shows the corresponding application statement."
     },
     {
@@ -236,7 +236,7 @@
       "anchors": [
         "if (i.hook_event_name === \"SubagentStop\") {"
       ],
-      "sourceSHA256": "18b99f06ee43501f80c682c3a9e588f8b47e538b9f1373b9be255d782d66c829",
+      "sourceSHA256": "8c7a56a476de7c3034972e763b28c5ce871cf3524e892deae6ea7582fa3aa7e4",
       "narration": "Step 11. Record actual child stop events and final report. Consume the entire parent stream because resumed work can complete asynchronously. This source excerpt shows the corresponding application statement."
     },
     {
@@ -246,12 +246,12 @@
       "code": "join(cwd, \".claude\", \"agents\", \"security-reviewer.md\"),\n    \"---\\nname: security-reviewer\\ndescription: Filesystem collision demonstration\\ntools: Read\\n---\\nReply FILE-DEFINITION-44 only. Never read files.\",",
       "language": "typescript",
       "explanation": "The project contains a same-name file agent with a different marker-only prompt. The programmatic definition takes precedence; verify actual review activity.",
-      "firstLine": 43,
-      "lastLine": 44,
+      "firstLine": 39,
+      "lastLine": 40,
       "anchors": [
         "join(cwd, \".claude\", \"agents\", \"security-reviewer.md\"),"
       ],
-      "sourceSHA256": "5fe5b28c78e80c98a844abb3b63bfb2f99e2cc3fd0f295e02ecb546ff9a91365",
+      "sourceSHA256": "457fe4bea5bdcc6dcf80f3dd0e27987dad4988066b43c3ad3caf17f55abbbd91",
       "narration": "Step 12. The project contains a same-name file agent with a different marker-only prompt. The programmatic definition takes precedence; verify actual review activity. This source excerpt shows the corresponding application statement."
     },
     {
@@ -261,12 +261,12 @@
       "code": "fixtureUnchanged: before.hash === after.hash,\n      fixture: after,\n      observations,\n      exceptions,\n    };",
       "language": "typescript",
       "explanation": "Hash the toy source, tests and endpoint fixture after the workflow. Native reports and unchanged files are independent evidence.",
-      "firstLine": 392,
-      "lastLine": 396,
+      "firstLine": 407,
+      "lastLine": 411,
       "anchors": [
         "fixtureUnchanged: before.hash === after.hash,"
       ],
-      "sourceSHA256": "18b99f06ee43501f80c682c3a9e588f8b47e538b9f1373b9be255d782d66c829",
+      "sourceSHA256": "8c7a56a476de7c3034972e763b28c5ce871cf3524e892deae6ea7582fa3aa7e4",
       "narration": "Step 13. Hash the toy source, tests and endpoint fixture after the workflow. Native reports and unchanged files are independent evidence. This source excerpt shows the corresponding application statement."
     }
   ]
