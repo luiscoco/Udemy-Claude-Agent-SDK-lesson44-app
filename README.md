@@ -177,7 +177,7 @@ export function extractAgentId(content: unknown): string | undefined {
 
 Require both native parent session and child ID. Keep the same definitions and record the exact resume request.
 
-Source: `src/agent.ts`, selected lines 339–345. Surrounding code omitted.
+Source: `src/agent.ts`, selected lines 339–349. Surrounding code omitted.
 
 ```typescript
 if (c.mode === "resume") {
@@ -187,6 +187,10 @@ if (c.mode === "resume") {
         );
       phase = 2;
       observe("resume-request", {
+        sessionId,
+        agentId,
+        definitionsUnchanged: true,
+      });
 ```
 
 ### 9. Resume the owning parent session
@@ -206,12 +210,16 @@ agents: agentDefinitions,
 
 Current runtime continuation uses SendMessage to the exact captured child ID. Reject unrelated recipients; a fresh Agent call is blocked during follow-up.
 
-Source: `src/policy.ts`, selected lines 18–20. Surrounding code omitted.
+Source: `src/policy.ts`, selected lines 18–24. Surrounding code omitted.
 
 ```typescript
 if (name === "SendMessage")
     return (
       typeof i.to === "string" &&
+      resumeIds.includes(i.to) &&
+      typeof i.message === "string"
+    );
+  if (name === "Bash")
 ```
 
 ### 11. Capture the native completion report

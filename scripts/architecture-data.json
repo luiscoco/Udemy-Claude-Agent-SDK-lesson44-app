@@ -183,11 +183,11 @@
       "number": 8,
       "title": "Require captured IDs before follow-up",
       "source": "src/agent.ts",
-      "code": "if (c.mode === \"resume\") {\n      if (!sessionId || !agentId)\n        throw new Error(\n          \"No resumable child Agent result ID was observed; no follow-up was fabricated.\",\n        );\n      phase = 2;\n      observe(\"resume-request\", {",
+      "code": "if (c.mode === \"resume\") {\n      if (!sessionId || !agentId)\n        throw new Error(\n          \"No resumable child Agent result ID was observed; no follow-up was fabricated.\",\n        );\n      phase = 2;\n      observe(\"resume-request\", {\n        sessionId,\n        agentId,\n        definitionsUnchanged: true,\n      });",
       "language": "typescript",
       "explanation": "Require both native parent session and child ID. Keep the same definitions and record the exact resume request.",
       "firstLine": 339,
-      "lastLine": 345,
+      "lastLine": 349,
       "anchors": [
         "if (c.mode === \"resume\") {"
       ],
@@ -213,11 +213,11 @@
       "number": 10,
       "title": "Target the existing child with SendMessage",
       "source": "src/policy.ts",
-      "code": "if (name === \"SendMessage\")\n    return (\n      typeof i.to === \"string\" &&",
+      "code": "if (name === \"SendMessage\")\n    return (\n      typeof i.to === \"string\" &&\n      resumeIds.includes(i.to) &&\n      typeof i.message === \"string\"\n    );\n  if (name === \"Bash\")",
       "language": "typescript",
       "explanation": "Current runtime continuation uses SendMessage to the exact captured child ID. Reject unrelated recipients; a fresh Agent call is blocked during follow-up.",
       "firstLine": 18,
-      "lastLine": 20,
+      "lastLine": 24,
       "anchors": [
         "if (name === \"SendMessage\")"
       ],

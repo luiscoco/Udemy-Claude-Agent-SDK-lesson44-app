@@ -27,18 +27,26 @@
               agentId: &quot;agent_id&quot; in message ? message.agent_id : null,
             });</code></pre></section><section class="step workflow-step" id="workflow-step-07"><span class="number">07</span><h3>7. Extract the child ID from native returns</h3><p>Parse the agentId trailer in actual returned message content. Do not substitute a tool-use ID or invent a resumable child.</p><p class="source">Source: src/agent.ts · lines 56–58 · selected source; surrounding code omitted</p><pre><code class="language-typescript">export function extractAgentId(content: unknown): string | undefined {
   return JSON.stringify(content).match(/agentId:\s*([\w-]+)/)?.[1];
-}</code></pre></section><section class="step workflow-step" id="workflow-step-08"><span class="number">08</span><h3>8. Require captured IDs before follow-up</h3><p>Require both native parent session and child ID. Keep the same definitions and record the exact resume request.</p><p class="source">Source: src/agent.ts · lines 339–345 · selected source; surrounding code omitted</p><pre><code class="language-typescript">if (c.mode === &quot;resume&quot;) {
+}</code></pre></section><section class="step workflow-step" id="workflow-step-08"><span class="number">08</span><h3>8. Require captured IDs before follow-up</h3><p>Require both native parent session and child ID. Keep the same definitions and record the exact resume request.</p><p class="source">Source: src/agent.ts · lines 339–349 · selected source; surrounding code omitted</p><pre><code class="language-typescript">if (c.mode === &quot;resume&quot;) {
       if (!sessionId || !agentId)
         throw new Error(
           &quot;No resumable child Agent result ID was observed; no follow-up was fabricated.&quot;,
         );
       phase = 2;
-      observe(&quot;resume-request&quot;, {</code></pre></section><section class="step workflow-step" id="workflow-step-09"><span class="number">09</span><h3>9. Resume the owning parent session</h3><p>The second query receives resume with the captured parent session ID and reuses the agent definitions. The parent session selects the stored conversation.</p><p class="source">Source: src/agent.ts · lines 103–106 · selected source; surrounding code omitted</p><pre><code class="language-typescript">agents: agentDefinitions,
+      observe(&quot;resume-request&quot;, {
+        sessionId,
+        agentId,
+        definitionsUnchanged: true,
+      });</code></pre></section><section class="step workflow-step" id="workflow-step-09"><span class="number">09</span><h3>9. Resume the owning parent session</h3><p>The second query receives resume with the captured parent session ID and reuses the agent definitions. The parent session selects the stored conversation.</p><p class="source">Source: src/agent.ts · lines 103–106 · selected source; surrounding code omitted</p><pre><code class="language-typescript">agents: agentDefinitions,
       resume,
       tools: [&quot;Agent&quot;, &quot;SendMessage&quot;, &quot;Read&quot;, &quot;Grep&quot;, &quot;Glob&quot;, &quot;Bash&quot;],
-      allowedTools: [&quot;Agent&quot;, &quot;SendMessage&quot;, &quot;Read&quot;, &quot;Grep&quot;, &quot;Glob&quot;, &quot;Bash&quot;],</code></pre></section><section class="step workflow-step" id="workflow-step-10"><span class="number">10</span><h3>10. Target the existing child with SendMessage</h3><p>Current runtime continuation uses SendMessage to the exact captured child ID. Reject unrelated recipients; a fresh Agent call is blocked during follow-up.</p><p class="source">Source: src/policy.ts · lines 18–20 · selected source; surrounding code omitted</p><pre><code class="language-typescript">if (name === &quot;SendMessage&quot;)
+      allowedTools: [&quot;Agent&quot;, &quot;SendMessage&quot;, &quot;Read&quot;, &quot;Grep&quot;, &quot;Glob&quot;, &quot;Bash&quot;],</code></pre></section><section class="step workflow-step" id="workflow-step-10"><span class="number">10</span><h3>10. Target the existing child with SendMessage</h3><p>Current runtime continuation uses SendMessage to the exact captured child ID. Reject unrelated recipients; a fresh Agent call is blocked during follow-up.</p><p class="source">Source: src/policy.ts · lines 18–24 · selected source; surrounding code omitted</p><pre><code class="language-typescript">if (name === &quot;SendMessage&quot;)
     return (
-      typeof i.to === &quot;string&quot; &amp;&amp;</code></pre></section><section class="step workflow-step" id="workflow-step-11"><span class="number">11</span><h3>11. Capture the native completion report</h3><p>Record actual child stop events and final report. Consume the entire parent stream because resumed work can complete asynchronously.</p><p class="source">Source: src/agent.ts · lines 195–202 · selected source; surrounding code omitted</p><pre><code class="language-typescript">if (i.hook_event_name === &quot;SubagentStop&quot;) {
+      typeof i.to === &quot;string&quot; &amp;&amp;
+      resumeIds.includes(i.to) &amp;&amp;
+      typeof i.message === &quot;string&quot;
+    );
+  if (name === &quot;Bash&quot;)</code></pre></section><section class="step workflow-step" id="workflow-step-11"><span class="number">11</span><h3>11. Capture the native completion report</h3><p>Record actual child stop events and final report. Consume the entire parent stream because resumed work can complete asynchronously.</p><p class="source">Source: src/agent.ts · lines 195–202 · selected source; surrounding code omitted</p><pre><code class="language-typescript">if (i.hook_event_name === &quot;SubagentStop&quot;) {
                   const event = {
                     kind: &quot;stop&quot;,
                     atMs: Date.now() - started,
