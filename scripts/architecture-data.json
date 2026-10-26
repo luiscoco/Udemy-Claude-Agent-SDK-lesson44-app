@@ -1,0 +1,273 @@
+{
+  "lanes": [
+    "Student UI",
+    "TypeScript host",
+    "Agent tool",
+    "Specialists",
+    "Classroom files"
+  ],
+  "arrows": [
+    [
+      0,
+      1,
+      "1. Validate the fixed experiment"
+    ],
+    [
+      1,
+      3,
+      "2. Build a runtime reviewer definition"
+    ],
+    [
+      1,
+      3,
+      "3. Select model and tools independently"
+    ],
+    [
+      1,
+      2,
+      "4. Attach the same agents to each query"
+    ],
+    [
+      1,
+      2,
+      "5. Detect the native Agent invocation"
+    ],
+    [
+      3,
+      0,
+      "6. Correlate nested messages with child IDs"
+    ],
+    [
+      3,
+      1,
+      "7. Extract the child ID from native returns"
+    ],
+    [
+      0,
+      1,
+      "8. Require captured IDs before follow-up"
+    ],
+    [
+      1,
+      2,
+      "9. Resume the owning parent session"
+    ],
+    [
+      2,
+      3,
+      "10. Target the existing child with SendMessage"
+    ],
+    [
+      3,
+      1,
+      "11. Capture the native completion report"
+    ],
+    [
+      1,
+      4,
+      "12. Create a same-name filesystem definition"
+    ],
+    [
+      1,
+      4,
+      "13. Independently verify file integrity"
+    ]
+  ],
+  "steps": [
+    {
+      "number": 1,
+      "title": "Validate the fixed experiment",
+      "source": "src/modes.ts",
+      "code": "export function validateConfig(value: unknown): RunConfig {\n  const c = value as Record<string, unknown>;\n  if (!c || typeof c !== \"object\" || !MODES.includes(c.mode as never))\n    throw new Error(\"Choose a listed subagent experiment.\");\n  if (Object.keys(c).some((k) => k !== \"mode\"))\n    throw new Error(\"Only the classroom mode can be configured.\");\n  return { mode: c.mode as RunConfig[\"mode\"] };",
+      "language": "typescript",
+      "explanation": "Accept only a classroom scenario; browser input cannot inject model IDs, definitions, paths or resume IDs.",
+      "firstLine": 3,
+      "lastLine": 9,
+      "anchors": [
+        "export function validateConfig(value: unknown): RunConfig {"
+      ],
+      "sourceSHA256": "3504ebb05190037dd3c088da3c6743efb8efdd49c22050e268d82d1ec0116a28",
+      "narration": "Step 1. Accept only a classroom scenario; browser input cannot inject model IDs, definitions, paths or resume IDs. This source excerpt shows the corresponding application statement."
+    },
+    {
+      "number": 2,
+      "title": "Build a runtime reviewer definition",
+      "source": "src/agents.ts",
+      "code": "export function createSecurityAgent(\n  level: \"basic\" | \"strict\",\n): AgentDefinition {\n  const strict = level === \"strict\";\n  return {\n    description:\n      \"Security reviewer for auth.cjs role checks. Delegate authentication security analysis here.\",",
+      "language": "typescript",
+      "explanation": "The typed factory selects a balanced or strict prompt at request time. Description tells the parent when to select the specialist.",
+      "firstLine": 2,
+      "lastLine": 8,
+      "anchors": [
+        "export function createSecurityAgent("
+      ],
+      "sourceSHA256": "58b0294ee129909c1e8619abfc17bc2d359b88274accc2449f8d7cc8938b47b3",
+      "narration": "Step 2. The typed factory selects a balanced or strict prompt at request time. Description tells the parent when to select the specialist. This source excerpt shows the corresponding application statement."
+    },
+    {
+      "number": 3,
+      "title": "Select model and tools independently",
+      "source": "src/agents.ts",
+      "code": "tools: [\"Read\", \"Grep\", \"Glob\"],\n    model: strict ? \"opus\" : \"sonnet\",\n    maxTurns: 5,\n    effort: \"low\",\n  };",
+      "language": "typescript",
+      "explanation": "Sonnet and Opus are runtime model aliases. Both reviewers retain the same read-only tools and bounded turns.",
+      "firstLine": 10,
+      "lastLine": 14,
+      "anchors": [
+        "tools: [\"Read\", \"Grep\", \"Glob\"],"
+      ],
+      "sourceSHA256": "58b0294ee129909c1e8619abfc17bc2d359b88274accc2449f8d7cc8938b47b3",
+      "narration": "Step 3. Sonnet and Opus are runtime model aliases. Both reviewers retain the same read-only tools and bounded turns. This source excerpt shows the corresponding application statement."
+    },
+    {
+      "number": 4,
+      "title": "Attach the same agents to each query",
+      "source": "src/agent.ts",
+      "code": "agents: agentDefinitions,\n      resume,\n      tools: [\"Agent\", \"SendMessage\", \"Read\", \"Grep\", \"Glob\", \"Bash\"],\n      allowedTools: [\"Agent\", \"SendMessage\", \"Read\", \"Grep\", \"Glob\", \"Bash\"],\n      permissionMode: \"dontAsk\",\n      settingSources: [\"project\"],",
+      "language": "typescript",
+      "explanation": "Attach stable definitions to the parent query. Enable Agent for initial delegation and SendMessage for current-runtime continuation.",
+      "firstLine": 103,
+      "lastLine": 108,
+      "anchors": [
+        "agents: agentDefinitions,"
+      ],
+      "sourceSHA256": "18b99f06ee43501f80c682c3a9e588f8b47e538b9f1373b9be255d782d66c829",
+      "narration": "Step 4. Attach stable definitions to the parent query. Enable Agent for initial delegation and SendMessage for current-runtime continuation. This source excerpt shows the corresponding application statement."
+    },
+    {
+      "number": 5,
+      "title": "Detect the native Agent invocation",
+      "source": "src/agent.ts",
+      "code": "if (!parentId && (b.name === \"Agent\" || b.name === \"Task\")) {\n                delegations.push(record);\n                observe(\"delegation\", record);\n              } else if (parentId) {\n                childTools.push(record);",
+      "language": "typescript",
+      "explanation": "Retain the actual Agent tool-use ID and input. Match Task as well for compatibility with older emitted names.",
+      "firstLine": 249,
+      "lastLine": 253,
+      "anchors": [
+        "if (!parentId && (b.name === \"Agent\" || b.name === \"Task\")) {"
+      ],
+      "sourceSHA256": "18b99f06ee43501f80c682c3a9e588f8b47e538b9f1373b9be255d782d66c829",
+      "narration": "Step 5. Retain the actual Agent tool-use ID and input. Match Task as well for compatibility with older emitted names. This source excerpt shows the corresponding application statement."
+    },
+    {
+      "number": 6,
+      "title": "Correlate nested messages with child IDs",
+      "source": "src/agent.ts",
+      "code": "observe(\"child-correlation\", {\n              phase,\n              parentId: message.parent_tool_use_id,\n              agentId: \"agent_id\" in message ? message.agent_id : null,\n            });",
+      "language": "typescript",
+      "explanation": "Child messages expose parent_tool_use_id and agent_id. These identify a delegation and child; neither is the parent session ID.",
+      "firstLine": 230,
+      "lastLine": 234,
+      "anchors": [
+        "observe(\"child-correlation\", {"
+      ],
+      "sourceSHA256": "18b99f06ee43501f80c682c3a9e588f8b47e538b9f1373b9be255d782d66c829",
+      "narration": "Step 6. Child messages expose parent_tool_use_id and agent_id. These identify a delegation and child; neither is the parent session ID. This source excerpt shows the corresponding application statement."
+    },
+    {
+      "number": 7,
+      "title": "Extract the child ID from native returns",
+      "source": "src/agent.ts",
+      "code": "export function extractAgentId(content: unknown): string | undefined {\n  return JSON.stringify(content).match(/agentId:\\s*([\\w-]+)/)?.[1];\n}",
+      "language": "typescript",
+      "explanation": "Parse the agentId trailer in actual returned message content. Do not substitute a tool-use ID or invent a resumable child.",
+      "firstLine": 56,
+      "lastLine": 58,
+      "anchors": [
+        "export function extractAgentId(content: unknown): string | undefined {"
+      ],
+      "sourceSHA256": "18b99f06ee43501f80c682c3a9e588f8b47e538b9f1373b9be255d782d66c829",
+      "narration": "Step 7. Parse the agentId trailer in actual returned message content. Do not substitute a tool-use ID or invent a resumable child. This source excerpt shows the corresponding application statement."
+    },
+    {
+      "number": 8,
+      "title": "Require captured IDs before follow-up",
+      "source": "src/agent.ts",
+      "code": "if (c.mode === \"resume\") {\n      if (!sessionId || !agentId)\n        throw new Error(\n          \"No resumable child Agent result ID was observed; no follow-up was fabricated.\",\n        );\n      phase = 2;\n      observe(\"resume-request\", {",
+      "language": "typescript",
+      "explanation": "Require both native parent session and child ID. Keep the same definitions and record the exact resume request.",
+      "firstLine": 339,
+      "lastLine": 345,
+      "anchors": [
+        "if (c.mode === \"resume\") {"
+      ],
+      "sourceSHA256": "18b99f06ee43501f80c682c3a9e588f8b47e538b9f1373b9be255d782d66c829",
+      "narration": "Step 8. Require both native parent session and child ID. Keep the same definitions and record the exact resume request. This source excerpt shows the corresponding application statement."
+    },
+    {
+      "number": 9,
+      "title": "Resume the owning parent session",
+      "source": "src/agent.ts",
+      "code": "const run = async (prompt = PROMPTS[c.mode], resume?: string) => {\n    const names = Object.keys(agentDefinitions);\n    const options: Options = {\n      cwd: w.cwd,\n      model: MODEL,\n      agents: agentDefinitions,\n      resume,",
+      "language": "typescript",
+      "explanation": "The second query receives resume with the captured parent session ID and reuses the agent definitions. The parent session selects the stored conversation.",
+      "firstLine": 98,
+      "lastLine": 104,
+      "anchors": [
+        "const run = async (prompt = PROMPTS[c.mode], resume?: string) => {"
+      ],
+      "sourceSHA256": "18b99f06ee43501f80c682c3a9e588f8b47e538b9f1373b9be255d782d66c829",
+      "narration": "Step 9. The second query receives resume with the captured parent session ID and reuses the agent definitions. The parent session selects the stored conversation. This source excerpt shows the corresponding application statement."
+    },
+    {
+      "number": 10,
+      "title": "Target the existing child with SendMessage",
+      "source": "src/policy.ts",
+      "code": "if (name === \"SendMessage\")\n    return (\n      typeof i.to === \"string\" &&",
+      "language": "typescript",
+      "explanation": "Current runtime continuation uses SendMessage to the exact captured child ID. Reject unrelated recipients; a fresh Agent call is blocked during follow-up.",
+      "firstLine": 18,
+      "lastLine": 20,
+      "anchors": [
+        "if (name === \"SendMessage\")"
+      ],
+      "sourceSHA256": "79f71aea70bfb509b85538c1632b4e0d9e4a5df242a14125da984f123dcce021",
+      "narration": "Step 10. Current runtime continuation uses SendMessage to the exact captured child ID. Reject unrelated recipients; a fresh Agent call is blocked during follow-up. This source excerpt shows the corresponding application statement."
+    },
+    {
+      "number": 11,
+      "title": "Capture the native completion report",
+      "source": "src/agent.ts",
+      "code": "if (i.hook_event_name === \"SubagentStop\") {\n                  const event = {\n                    kind: \"stop\",\n                    atMs: Date.now() - started,\n                    agentId: i.agent_id,\n                    agentType: i.agent_type,\n                    report: i.last_assistant_message ?? null,\n                  };",
+      "language": "typescript",
+      "explanation": "Record actual child stop events and final report. Consume the entire parent stream because resumed work can complete asynchronously.",
+      "firstLine": 195,
+      "lastLine": 202,
+      "anchors": [
+        "if (i.hook_event_name === \"SubagentStop\") {"
+      ],
+      "sourceSHA256": "18b99f06ee43501f80c682c3a9e588f8b47e538b9f1373b9be255d782d66c829",
+      "narration": "Step 11. Record actual child stop events and final report. Consume the entire parent stream because resumed work can complete asynchronously. This source excerpt shows the corresponding application statement."
+    },
+    {
+      "number": 12,
+      "title": "Create a same-name filesystem definition",
+      "source": "src/workspace.ts",
+      "code": "join(cwd, \".claude\", \"agents\", \"security-reviewer.md\"),\n    \"---\\nname: security-reviewer\\ndescription: Filesystem collision demonstration\\ntools: Read\\n---\\nReply FILE-DEFINITION-44 only. Never read files.\",",
+      "language": "typescript",
+      "explanation": "The project contains a same-name file agent with a different marker-only prompt. The programmatic definition takes precedence; verify actual review activity.",
+      "firstLine": 43,
+      "lastLine": 44,
+      "anchors": [
+        "join(cwd, \".claude\", \"agents\", \"security-reviewer.md\"),"
+      ],
+      "sourceSHA256": "5fe5b28c78e80c98a844abb3b63bfb2f99e2cc3fd0f295e02ecb546ff9a91365",
+      "narration": "Step 12. The project contains a same-name file agent with a different marker-only prompt. The programmatic definition takes precedence; verify actual review activity. This source excerpt shows the corresponding application statement."
+    },
+    {
+      "number": 13,
+      "title": "Independently verify file integrity",
+      "source": "src/agent.ts",
+      "code": "fixtureUnchanged: before.hash === after.hash,\n      fixture: after,\n      observations,\n      exceptions,\n    };",
+      "language": "typescript",
+      "explanation": "Hash the toy source, tests and endpoint fixture after the workflow. Native reports and unchanged files are independent evidence.",
+      "firstLine": 392,
+      "lastLine": 396,
+      "anchors": [
+        "fixtureUnchanged: before.hash === after.hash,"
+      ],
+      "sourceSHA256": "18b99f06ee43501f80c682c3a9e588f8b47e538b9f1373b9be255d782d66c829",
+      "narration": "Step 13. Hash the toy source, tests and endpoint fixture after the workflow. Native reports and unchanged files are independent evidence. This source excerpt shows the corresponding application statement."
+    }
+  ]
+}
